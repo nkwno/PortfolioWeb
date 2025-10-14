@@ -4,6 +4,7 @@ import { createTable } from './components/table.js';
 import { createLamp } from './components/lamp.js';
 import { createLaptop } from './components/laptop.js';
 import { createBasketball } from './components/basketball.js';
+import { createWhiteboard } from './components/whiteBoard.js';
 
 //scene
 const scene = new THREE.Scene();
@@ -87,7 +88,22 @@ ball.position.set(3.0, -2.68, -0.8);
 ball.scale.set(1.6, 1.6, 1.6)
 scene.add(ball);
 
-// Shadows look great on a floor/table:
+//create whiteboard
+const board = createWhiteboard({
+  camera,
+  domElement: renderer.domElement,
+  // Optional: override default projects
+  projects: [
+    { title: 'iOS Fitness App', desc: 'Real-time form feedback with MediaPipe + Swift.', link: 'https://github.com/nkwno' },
+    { title: 'FastAPI Backend', desc: 'Video processing pipeline on GCP.', link: 'https://github.com/nkwno' },
+    { title: 'Health Trends', desc: 'CVD search trends with county-level models.', link: 'https://github.com/nkwno' },
+    { title: 'Robot Seeker', desc: 'Arduino bot finds nearest object.', link: 'https://github.com/nkwno' },
+  ]
+});
+board.position.set(2.0, 1.1, -5.0);
+scene.add(board);
+
+//shadows
 renderer.shadowMap.enabled = true;
 ball.castShadow = true;
 floor && (floor.receiveShadow = true);
