@@ -30,6 +30,44 @@ if (!canvas) document.body.appendChild(renderer.domElement);
 //make it so that you can control the camera
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
+controls.minDistance = 10.0;
+controls.maxDistance = 15.0;
+controls.minPolarAngle = 0.15;
+controls.maxPolarAngle = Math.PI * 0.49;
+controls.enablePan = true;
+
+// room bounds
+const ROOM = {
+  minX: -16, maxX:  4.5,
+  minZ: -3.0, maxZ:  15.0,
+  minY: -0.47091984852376617, maxY:  15.0
+};
+
+
+// keep target and camera inside the room
+function clampCameraToRoom() {
+  // clamp target first
+  const t = controls.target;
+  t.x = Math.min(ROOM.maxX, Math.max(ROOM.minX, t.x));
+  t.y = Math.min(ROOM.maxY, Math.max(ROOM.minY, t.y));
+  t.z = Math.min(ROOM.maxZ, Math.max(ROOM.minZ, t.z));
+
+  // preserve camera-target offset while clamping camera into the box too
+  const offset = camera.position.clone().sub(t);
+  camera.position.copy(t).add(offset);
+
+  // clamp camera position into the box (prevents flying outside with big drags)
+  camera.position.x = Math.min(ROOM.maxX, Math.max(ROOM.minX, camera.position.x));
+  camera.position.y = Math.min(ROOM.maxY, Math.max(ROOM.minY, camera.position.y));
+  camera.position.z = Math.min(ROOM.maxZ, Math.max(ROOM.minZ, camera.position.z));
+
+  camera.updateProjectionMatrix();
+}
+
+// Run on every control change + each frame (belt-and-suspenders)
+controls.addEventListener('change', clampCameraToRoom);
+
+controls.enableDamping = true;
 
 //lights
 scene.add(new THREE.AmbientLight(0xffffff, 0.5));
@@ -116,6 +154,7 @@ scene.add(lamp);
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
+  clampCameraToRoom()
   renderer.render(scene, camera);
 }
 animate();
