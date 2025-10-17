@@ -9,7 +9,7 @@ import { createChair } from './components/officeChair.js';
 
 //scene
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0b1022);
+scene.background = new THREE.Color(0x0C1B47);
 
 //camera
 const camera = new THREE.PerspectiveCamera(
@@ -77,27 +77,36 @@ key.position.set(2, 3, 2);
 scene.add(key);
 
 //room wall material
-const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xDBD372 });
+const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xDBD272 });
 
-//back wall
-const backWall = new THREE.Mesh(new THREE.PlaneGeometry(10, 6), wallMaterial);
-backWall.position.z = -5;
-backWall.position.y = 0;
+// wall thickness (depth into the room)
+const wallThickness = 0.3;
+
+// --- Back wall (behind desk) ---
+const backWall = new THREE.Mesh(
+  new THREE.BoxGeometry(10, 6.6, wallThickness),
+  wallMaterial
+);
+backWall.position.set(0, 0, -5 - wallThickness / 2); // push slightly back
 scene.add(backWall);
 
-//right wall
-const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(10, 6), wallMaterial);
+// --- Right wall ---
+const rightWall = new THREE.Mesh(
+  new THREE.BoxGeometry(10, 6.6, wallThickness),
+  wallMaterial
+);
+// rotate so its thickness runs along X instead of Z
 rightWall.rotation.y = -Math.PI / 2;
-rightWall.position.set(5, 0, 0);
+rightWall.position.set(5 + wallThickness / 2, 0, 0);
 scene.add(rightWall);
 
 //floor
 const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(10, 10),
-  new THREE.MeshStandardMaterial({ color: 0x7BBAB3 })
+  new THREE.BoxGeometry(10, wallThickness, 10), // gives it thickness
+  new THREE.MeshStandardMaterial({ color: 0xDB9E72 })
 );
-floor.rotation.x = -Math.PI / 2;
-floor.position.y = -3;
+floor.position.y = -3 - wallThickness / 2; // move it down by half thickness
+floor.receiveShadow = true;
 scene.add(floor);
 
 //desk
