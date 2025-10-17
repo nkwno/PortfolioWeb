@@ -82,32 +82,94 @@ const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xDBD272 });
 // wall thickness (depth into the room)
 const wallThickness = 0.3;
 
-// --- Back wall (behind desk) ---
+// --- Create the walls first ---
 const backWall = new THREE.Mesh(
   new THREE.BoxGeometry(10, 6.6, wallThickness),
-  wallMaterial
+  new THREE.MeshStandardMaterial({ color: 0xDBD272 }) // temporary material
 );
-backWall.position.set(0, 0, -5 - wallThickness / 2); // push slightly back
+backWall.position.set(0, 0, -5 - wallThickness / 2);
 scene.add(backWall);
 
-// --- Right wall ---
 const rightWall = new THREE.Mesh(
   new THREE.BoxGeometry(10, 6.6, wallThickness),
-  wallMaterial
+  new THREE.MeshStandardMaterial({ color: 0xDBD272 })
 );
-// rotate so its thickness runs along X instead of Z
 rightWall.rotation.y = -Math.PI / 2;
 rightWall.position.set(5 + wallThickness / 2, 0, 0);
 scene.add(rightWall);
 
+// --- Now load and apply the plaster textures ---
+const wallUrl = (name) =>
+  new URL(`./texture/Plaster001_2K-JPG/${name}`, import.meta.url).href;
+
+const wallLoader = new THREE.TextureLoader();
+
+const plasterColor = wallLoader.load(wallUrl('Plaster001_2K-JPG_Color.jpg'));
+const plasterNormal = wallLoader.load(wallUrl('Plaster001_2K-JPG_NormalGL.jpg'));
+const plasterRough  = wallLoader.load(wallUrl('Plaster001_2K-JPG_Roughness.jpg'));
+
+[plasterColor, plasterNormal, plasterRough].forEach(t => {
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(4, 2.5);
+});
+
+plasterColor.colorSpace = THREE.SRGBColorSpace;
+
+const plasterMat = new THREE.MeshStandardMaterial({
+  map: plasterColor,
+  normalMap: plasterNormal,
+  roughnessMap: plasterRough,
+  roughness: 0.9,
+  metalness: 0.0,
+  normalScale: new THREE.Vector2(0.6, 0.6),
+});
+
+// apply to walls now that they exist
+backWall.material = plasterMat.clone();
+rightWall.material = plasterMat.clone();
+
+// sharpen textures
+const wallAniso = renderer.capabilities.getMaxAnisotropy?.() ?? 8;
+[plasterColor, plasterNormal, plasterRough].forEach(t => t.anisotropy = Math.min(8, wallAniso));
+
 //floor
+const floorUrl = (name) =>
+  new URL(`./texture/WoodFloor043_2K-JPG/${name}`, import.meta.url).href;
+
+const texLoader = new THREE.TextureLoader();
+
+const woodColor = texLoader.load(floorUrl('WoodFloor043_2K-JPG_Color.jpg'));
+const woodNormal = texLoader.load(floorUrl('WoodFloor043_2K-JPG_NormalGL.jpg'));
+const woodRough  = texLoader.load(floorUrl('WoodFloor043_2K-JPG_Roughness.jpg'));
+
+[woodColor, woodNormal, woodRough].forEach(t => {
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(3, 3);
+  t.center.set(0.5, 0.5);
+  t.rotation = Math.PI / 2;
+});
+
+woodColor.colorSpace = THREE.SRGBColorSpace;
+
 const floor = new THREE.Mesh(
-  new THREE.BoxGeometry(10, wallThickness, 10), // gives it thickness
+  new THREE.BoxGeometry(10, wallThickness, 10),
   new THREE.MeshStandardMaterial({ color: 0xDB9E72 })
 );
-floor.position.y = -3 - wallThickness / 2; // move it down by half thickness
+floor.position.y = -3 - wallThickness / 2;
 floor.receiveShadow = true;
 scene.add(floor);
+
+floor.material = new THREE.MeshStandardMaterial({
+  map: woodColor,
+  normalMap: woodNormal,
+  roughnessMap: woodRough,
+  roughness: 0.85,
+  metalness: 0.0,
+});
+
+// sharpen
+const aniso = renderer.capabilities.getMaxAnisotropy?.() ?? 8;
+[woodColor, woodNormal, woodRough].forEach(t => t.anisotropy = Math.min(8, aniso));
 
 //desk
 const table = createTable({
