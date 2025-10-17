@@ -5,6 +5,7 @@ import { createLamp } from './components/lamp.js';
 import { createLaptop } from './components/laptop.js';
 import { createBasketball } from './components/basketball.js';
 import { createWhiteboard } from './components/whiteBoard.js';
+import { createChair } from './components/officeChair.js';
 
 //scene
 const scene = new THREE.Scene();
@@ -126,6 +127,14 @@ ball.position.set(3.0, -2.68, -0.8);
 ball.scale.set(1.6, 1.6, 1.6)
 scene.add(ball);
 
+const chair = createChair({
+  // tweak sizes/colors if you like:
+  // spinSpeed: 0.25,
+});
+chair.position.set(2.4, -3, 2.2);  // on the floor, in front of table
+chair.scale.set(2, 2, 2)
+scene.add(chair);
+
 //create whiteboard
 const board = createWhiteboard({
   camera,
@@ -151,8 +160,14 @@ lamp.position.set(4.0, 1.0, 0);
 scene.add(lamp);
 
 //render loop
+let last = performance.now();
 function animate() {
   requestAnimationFrame(animate);
+  const now = performance.now();
+  const dt = (now - last) / 1000; // seconds
+  last = now;
+
+  if (chair.userData.update) chair.userData.update(dt);
   controls.update();
   clampCameraToRoom()
   renderer.render(scene, camera);
