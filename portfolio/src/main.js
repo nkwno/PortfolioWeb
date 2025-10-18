@@ -6,6 +6,8 @@ import { createLaptop } from './components/laptop.js';
 import { createBasketball } from './components/basketball.js';
 import { createWhiteboard } from './components/whiteBoard.js';
 import { createChair } from './components/officeChair.js';
+import { createLinkedInFrame } from './components/linkedinFrame.js';
+
 
 //scene
 const scene = new THREE.Scene();
@@ -28,6 +30,13 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 if (!canvas) document.body.appendChild(renderer.domElement);
 
+// sRGB output (good colors)
+if ('outputColorSpace' in renderer) {
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+} else {
+  renderer.outputEncoding = THREE.sRGBEncoding;
+}
+
 //make it so that you can control the camera
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -36,6 +45,33 @@ controls.maxDistance = 15.0;
 controls.minPolarAngle = 0.15;
 controls.maxPolarAngle = Math.PI * 0.49;
 controls.enablePan = true;
+
+// --- simple raycast interactivity
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let hovered = null;
+
+function onPointerMove(e) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(scene.children, true);
+  const hit = hits.find(h => h.object.userData.openUrl);
+  renderer.domElement.style.cursor = hit ? 'pointer' : '';
+  hovered = hit?.object ?? null;
+}
+
+function onPointerDown() {
+  if (hovered?.userData.openUrl) {
+    window.open(hovered.userData.openUrl, '_blank', 'noopener,noreferrer');
+  }
+}
+
+renderer.domElement.addEventListener('pointermove', onPointerMove);
+renderer.domElement.addEventListener('pointerdown', onPointerDown);
+
 
 // room bounds
 const ROOM = {
@@ -220,6 +256,18 @@ const board = createWhiteboard({
 });
 board.position.set(2.0, 1.1, -5.0);
 scene.add(board);
+
+//linkedin frame
+const frame = createLinkedInFrame({
+  url: 'https://www.linkedin.com/in/nao-kawano/',
+  outer: { w: 0.7, h: 0.7, d: 0.04 },
+  frameWidth: 0.06,
+});
+
+// place it on the right wall
+frame.position.set(5, 0.9, 0);
+frame.rotation.y = Math.PI * 1.5;
+scene.add(frame);
 
 //shadows
 renderer.shadowMap.enabled = true;
