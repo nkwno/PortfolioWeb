@@ -39,6 +39,138 @@ if ('outputColorSpace' in renderer) {
   renderer.outputEncoding = THREE.sRGBEncoding;
 }
 
+// ---------- NAV BAR + CAMERA FLY-TO ----------
+function injectNav() {
+  // Styles
+  const style = document.createElement('style');
+  style.textContent = `
+    .topnav {
+      position: fixed; top: 0; left: 0; right: 0; height: 56px;
+      display: flex; align-items: center; gap: 16px;
+      padding: 0 20px; z-index: 10;
+      background: rgba(13,17,23,0.85);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    .topnav button {
+      appearance: none; border: 0; border-radius: 10px; padding: 8px 14px;
+      background: #e6edf3; color: #0d1117; font-weight: 600; cursor: pointer;
+      transition: transform .06s ease, opacity .2s ease;
+    }
+    .topnav button:hover { transform: translateY(-1px); }
+    .topnav .spacer { flex: 1; }
+    .topnav .brand { color: #e6edf3; font-weight: 700; letter-spacing: .3px; opacity: .9; }
+  `;
+  document.head.appendChild(style);
+
+  // DOM
+  const nav = document.createElement('div');
+  nav.className = 'topnav';
+  nav.innerHTML = `
+    <div class="brand">Portfolio</div>
+    <div class="spacer"></div>
+    <button data-goto="home">Home</button>
+    <button data-goto="contact">Contact</button>
+    <button data-goto="social">Social</button>
+    <button data-goto="projects">Projects</button>
+  `;
+  document.body.appendChild(nav);
+
+  // Camera anchors
+  const ANCHORS = {
+    // Initial overview (Home)
+    home: {
+      // Target = what the camera looks at
+      target: new THREE.Vector3(0, 0, 0),    // look toward the middle of the room
+      // Position = where the camera physically sits
+      position: new THREE.Vector3(-15, 10, 0),
+      duration: 1.5,
+    },
+    // Laptop/table (Contact)
+    contact: {
+      target: new THREE.Vector3(4.0, 0.8, 3.0),
+      position: new THREE.Vector3(1.8, 1.4, 3.0),
+      duration: 1.2,
+    },
+    // LinkedIn + GitHub frames (Social)
+    social: {
+      target: new THREE.Vector3(5.0, 1.0, 2.0),
+      position: new THREE.Vector3(2.8, 1.6, 2.0),
+      duration: 1.2,
+    },
+    // Whiteboard (Projects)
+    projects: {
+      // the whiteboard itself
+      target: new THREE.Vector3(2.0, 1.1, -5.0),
+      // move camera straight along the board's normal direction
+      position: new THREE.Vector3(2.0, 1.1, -2.6), // same Y as target → no downward tilt
+      duration: 1.2,
+    },
+  };
+
+  function clampVec3(v) {
+    v.x = Math.min(ROOM.maxX, Math.max(ROOM.minX, v.x));
+    v.y = Math.min(ROOM.maxY, Math.max(ROOM.minY, v.y));
+    v.z = Math.min(ROOM.maxZ, Math.max(ROOM.minZ, v.z));
+    return v;
+  }
+
+  const easeInOutQuad = (t) => (t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2)/2);
+
+  // Smooth camera tween
+  let tweenId = 0;
+  function flyTo({ position, target, duration = 1.2 }) {
+    tweenId++;
+    const thisTween = tweenId;
+
+    const startPos = camera.position.clone();
+    const startTgt = controls.target.clone();
+    const endPos = clampVec3(position.clone());
+    const endTgt = clampVec3(target.clone());
+
+    const start = performance.now();
+    controls.enabled = false;
+
+    function step(now) {
+      if (thisTween !== tweenId) return;
+      const t = Math.min(1, (now - start) / (duration * 1000));
+      const k = easeInOutQuad(t);
+
+      camera.position.lerpVectors(startPos, endPos, k);
+      controls.target.lerpVectors(startTgt, endTgt, k);
+
+      clampCameraToRoom();
+      camera.lookAt(controls.target);
+
+      if (t < 1) requestAnimationFrame(step);
+      else controls.enabled = true;
+    }
+    requestAnimationFrame(step);
+  }
+
+  // Button click handling
+  nav.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-goto]');
+    if (!btn) return;
+    const key = btn.getAttribute('data-goto');
+    const anchor = ANCHORS[key];
+    if (anchor) flyTo(anchor);
+  });
+
+  // Keyboard shortcuts (H=Home, 1–3 for sections)
+  window.addEventListener('keydown', (e) => {
+    if (['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+    if (e.key.toLowerCase() === 'h') flyTo(ANCHORS.home);
+    if (e.key === '1') flyTo(ANCHORS.contact);
+    if (e.key === '2') flyTo(ANCHORS.social);
+    if (e.key === '3') flyTo(ANCHORS.projects);
+  });
+}
+
+injectNav();
+
+
 //make it so that you can control the camera
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
