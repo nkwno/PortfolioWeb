@@ -45,14 +45,6 @@ export function createWhiteboard(opts = {}) {
   frame.position.z = -depth * 0.5 - 0.012;
   group.add(frame);
 
-  // title
-  const titleSprite = makeLabelSprite('Projects', {
-    fontSize: 90, paddingX: 32, paddingY: 16,
-    bg: '#0b1229', stroke: '#2a3769', color: '#e7ecf4'
-  });
-  titleSprite.position.set(0, height * 0.8, depth * 0.51);
-  group.add(titleSprite);
-
   //layout
   const rows = Math.ceil(projects.length / columns);
   const autoCardW = (width * 0.9 ? 0.9 : 0.9);
