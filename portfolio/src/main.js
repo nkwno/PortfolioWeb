@@ -7,6 +7,8 @@ import { createBasketball } from './components/basketball.js';
 import { createWhiteboard } from './components/whiteBoard.js';
 import { createChair } from './components/officeChair.js';
 import { createLinkedInFrame } from './components/linkedinFrame.js';
+import { createGitHubFrame } from './components/githubFrame.js';
+import { createRug } from './components/rug.js';
 
 
 //scene
@@ -234,6 +236,7 @@ ball.position.set(3.0, -2.68, -0.8);
 ball.scale.set(1.6, 1.6, 1.6)
 scene.add(ball);
 
+//chair
 const chair = createChair({
   // tweak sizes/colors if you like:
   // spinSpeed: 0.25,
@@ -257,17 +260,42 @@ const board = createWhiteboard({
 board.position.set(2.0, 1.1, -5.0);
 scene.add(board);
 
+// rug
+const rug = createRug({
+  size: { w: 1.8, d: 1.6 },
+  thickness: 0.012,
+  tile: { x: 1.2, y: 1.2 },
+  rotation: 0,
+  elevation: 0.002
+});
+rug.position.set(2.6, -3, 2.3);
+scene.add(rug);
+
 //linkedin frame
-const frame = createLinkedInFrame({
+const linkedin_frame = createLinkedInFrame({
   url: 'https://www.linkedin.com/in/nao-kawano/',
   outer: { w: 0.7, h: 0.7, d: 0.04 },
   frameWidth: 0.06,
 });
 
 // place it on the right wall
-frame.position.set(5, 0.9, 0);
-frame.rotation.y = Math.PI * 1.5;
-scene.add(frame);
+linkedin_frame.scale.set(1.5, 1.5, 1.5)
+linkedin_frame.position.set(5, 0.9, 0);
+linkedin_frame.rotation.y = Math.PI * 1.5;
+scene.add(linkedin_frame);
+
+//github frame
+const github_frame = createGitHubFrame({
+  url: 'https://github.com/nkwno',
+  outer: { w: 0.7, h: 0.7, d: 0.04 },
+  frameWidth: 0.06,
+});
+
+// place it on the right wall
+github_frame.scale.set(1.5, 1.5, 1.5)
+github_frame.position.set(5, 0.9, 4);
+github_frame.rotation.y = Math.PI * 1.5;
+scene.add(github_frame);
 
 //shadows
 renderer.shadowMap.enabled = true;
