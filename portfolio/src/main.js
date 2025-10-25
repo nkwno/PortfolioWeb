@@ -39,7 +39,8 @@ if ('outputColorSpace' in renderer) {
   renderer.outputEncoding = THREE.sRGBEncoding;
 }
 
-// ---------- NAV BAR + CAMERA FLY-TO ----------
+// nav bar and camera fly
+// ---------- NAV BAR + CAMERA FLY-TO (locks controls off except on Home) ----------
 function injectNav() {
   // Styles
   const style = document.createElement('style');
@@ -51,7 +52,7 @@ function injectNav() {
       background: rgba(13,17,23,0.85);
       backdrop-filter: blur(6px);
       border-bottom: 1px solid rgba(255,255,255,0.08);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
     .topnav button {
       appearance: none; border: 0; border-radius: 10px; padding: 8px 14px;
@@ -79,36 +80,29 @@ function injectNav() {
 
   // Camera anchors
   const ANCHORS = {
-    // Initial overview (Home)
     home: {
-      // Target = what the camera looks at
-      target: new THREE.Vector3(0, 0, 0),    // look toward the middle of the room
-      // Position = where the camera physically sits
+      target: new THREE.Vector3(0, 0, 0),
       position: new THREE.Vector3(-15, 10, 0),
       duration: 1.5,
     },
-    // Laptop/table (Contact)
     contact: {
       target: new THREE.Vector3(4.0, 0.8, 3.0),
       position: new THREE.Vector3(1.8, 1.4, 3.0),
       duration: 1.2,
     },
-    // LinkedIn + GitHub frames (Social)
     social: {
       target: new THREE.Vector3(5.0, 1.0, 2.0),
       position: new THREE.Vector3(2.8, 1.6, 2.0),
       duration: 1.2,
     },
-    // Whiteboard (Projects)
     projects: {
-      // the whiteboard itself
       target: new THREE.Vector3(2.0, 1.1, -5.0),
-      // move camera straight along the board's normal direction
-      position: new THREE.Vector3(2.0, 1.1, -2.6), // same Y as target → no downward tilt
+      position: new THREE.Vector3(2.0, 1.1, -2.6), // level, face-on
       duration: 1.2,
     },
   };
 
+  // Clamp helper
   function clampVec3(v) {
     v.x = Math.min(ROOM.maxX, Math.max(ROOM.minX, v.x));
     v.y = Math.min(ROOM.maxY, Math.max(ROOM.minY, v.y));
@@ -118,9 +112,19 @@ function injectNav() {
 
   const easeInOutQuad = (t) => (t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2)/2);
 
-  // Smooth camera tween
+  // Toggle user camera control (single place to manage)
+  function setUserControl(enabled) {
+    controls.enabled = enabled;
+    // optional: also hard-disable specific gestures if you want
+    controls.enableRotate = enabled;
+    controls.enablePan = enabled;
+    controls.enableZoom = enabled;
+    renderer.domElement.style.cursor = enabled ? '' : 'default';
+  }
+
+  // Smooth camera tween; lock controls during tween; keep locked unless 'home'
   let tweenId = 0;
-  function flyTo({ position, target, duration = 1.2 }) {
+  function flyTo(key, { position, target, duration = 1.2 }) {
     tweenId++;
     const thisTween = tweenId;
 
@@ -130,7 +134,7 @@ function injectNav() {
     const endTgt = clampVec3(target.clone());
 
     const start = performance.now();
-    controls.enabled = false;
+    setUserControl(false); // lock immediately
 
     function step(now) {
       if (thisTween !== tweenId) return;
@@ -143,33 +147,37 @@ function injectNav() {
       clampCameraToRoom();
       camera.lookAt(controls.target);
 
-      if (t < 1) requestAnimationFrame(step);
-      else controls.enabled = true;
+      if (t < 1) {
+        requestAnimationFrame(step);
+      } else {
+        // Only enable user control if we're on Home
+        setUserControl(key === 'home');
+      }
     }
     requestAnimationFrame(step);
   }
 
-  // Button click handling
+  // Click handlers
   nav.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-goto]');
     if (!btn) return;
     const key = btn.getAttribute('data-goto');
     const anchor = ANCHORS[key];
-    if (anchor) flyTo(anchor);
+    if (anchor) flyTo(key, anchor);
   });
 
   // Keyboard shortcuts (H=Home, 1–3 for sections)
   window.addEventListener('keydown', (e) => {
     if (['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
-    if (e.key.toLowerCase() === 'h') flyTo(ANCHORS.home);
-    if (e.key === '1') flyTo(ANCHORS.contact);
-    if (e.key === '2') flyTo(ANCHORS.social);
-    if (e.key === '3') flyTo(ANCHORS.projects);
+    if (e.key.toLowerCase() === 'h') flyTo('home', ANCHORS.home);
+    if (e.key === '1') flyTo('contact', ANCHORS.contact);
+    if (e.key === '2') flyTo('social', ANCHORS.social);
+    if (e.key === '3') flyTo('projects', ANCHORS.projects);
   });
+
+  // On load: ensure Home starts with controls enabled
+  setUserControl(true);
 }
-
-injectNav();
-
 
 //make it so that you can control the camera
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -179,6 +187,7 @@ controls.maxDistance = 15.0;
 controls.minPolarAngle = 0.15;
 controls.maxPolarAngle = Math.PI * 0.49;
 controls.enablePan = true;
+injectNav();
 
 // --- simple raycast interactivity
 const raycaster = new THREE.Raycaster();
