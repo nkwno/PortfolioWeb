@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { createTable } from './components/table.js';
 import { createLamp } from './components/lamp.js';
@@ -9,7 +10,7 @@ import { createChair } from './components/officeChair.js';
 import { createLinkedInFrame } from './components/linkedinFrame.js';
 import { createGitHubFrame } from './components/githubFrame.js';
 import { createRug } from './components/rug.js';
-
+import { createBasketballHoop } from './components/hoop.js';
 
 //scene
 const scene = new THREE.Scene();
@@ -432,6 +433,43 @@ const github_frame = createGitHubFrame({
   frameWidth: 0.06,
 });
 
+//hoop
+const hoop = createBasketballHoop({
+  position: new THREE.Vector3(-3, -3, -4),
+  scale: 1.0
+});
+
+// Add to scene
+hoop.scale.set(1.5, 1.5, 1.5)
+hoop.rotation.y = Math.PI
+scene.add(hoop);
+
+const loader = new GLTFLoader();
+loader.load('/models/sofa.glb', (gltf) => {
+  const sofa = gltf.scene;
+  sofa.scale.set(3, 3, 3);
+  sofa.position.set(-2.5, -3, 2);
+  sofa.rotation.y = Math.PI * 0.5
+  scene.add(sofa);
+});
+
+const cameraLoader = new GLTFLoader();
+cameraLoader.load('/models/camera.glb', (gltf) => {
+  const camera = gltf.scene;
+  camera.scale.set(4, 4, 4);
+  camera.position.set(4.0, -1.33, 2.0);
+  camera.rotation.y = Math.PI * 1.6
+  scene.add(camera);
+});
+
+const shelfLoader = new GLTFLoader();
+shelfLoader.load('/models/shelf.glb', (gltf) => {
+  const shelf = gltf.scene;
+  shelf.scale.set(4, 4, 4);
+  shelf.position.set(4.0, -3, -3.0);
+  shelf.rotation.y = Math.PI * 1.5
+  scene.add(shelf);
+});
 // place it on the right wall
 github_frame.scale.set(1.5, 1.5, 1.5)
 github_frame.position.set(5, 0.9, 4);
