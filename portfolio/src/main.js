@@ -5,7 +5,6 @@ import { createTable } from './components/table.js';
 import { createLamp } from './components/lamp.js';
 import { createLaptop } from './components/laptop.js';
 import { createBasketball } from './components/basketball.js';
-import { createWhiteboard } from './components/whiteBoard.js';
 import { createChair } from './components/officeChair.js';
 import { createLinkedInFrame } from './components/linkedinFrame.js';
 import { createGitHubFrame } from './components/githubFrame.js';
@@ -73,7 +72,6 @@ function injectNav() {
     <div class="brand">Portfolio</div>
     <div class="spacer"></div>
     <button data-goto="home">Home</button>
-    <button data-goto="contact">Contact</button>
     <button data-goto="social">Social</button>
     <button data-goto="projects">Projects</button>
   `;
@@ -86,18 +84,13 @@ function injectNav() {
       position: new THREE.Vector3(-15, 10, 0),
       duration: 1.5,
     },
-    contact: {
-      target: new THREE.Vector3(4.0, 0.8, 3.0),
-      position: new THREE.Vector3(1.8, 1.4, 3.0),
-      duration: 1.2,
-    },
     social: {
       target: new THREE.Vector3(5.0, 1.0, 2.0),
       position: new THREE.Vector3(2.8, 1.6, 2.0),
       duration: 1.2,
     },
     projects: {
-      target: new THREE.Vector3(2.0, 1.1, -5.0),
+      target: new THREE.Vector3(5.0, 1.1, -2.0),
       position: new THREE.Vector3(2.0, 1.1, -2.6), // level, face-on
       duration: 1.2,
     },
@@ -171,9 +164,8 @@ function injectNav() {
   window.addEventListener('keydown', (e) => {
     if (['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
     if (e.key.toLowerCase() === 'h') flyTo('home', ANCHORS.home);
-    if (e.key === '1') flyTo('contact', ANCHORS.contact);
-    if (e.key === '2') flyTo('social', ANCHORS.social);
-    if (e.key === '3') flyTo('projects', ANCHORS.projects);
+    if (e.key === '1') flyTo('social', ANCHORS.social);
+    if (e.key === '2') flyTo('projects', ANCHORS.projects);
   });
 
   // On load: ensure Home starts with controls enabled
@@ -368,7 +360,7 @@ scene.add(laptop);
 
 //basketball
 const ball = createBasketball({ radius: 0.20 });
-ball.position.set(3.0, -2.68, -0.8);
+ball.position.set(-2.2, -2.68, -2.8);
 ball.scale.set(1.6, 1.6, 1.6)
 scene.add(ball);
 
@@ -380,21 +372,6 @@ const chair = createChair({
 chair.position.set(2.4, -3, 2.2);  // on the floor, in front of table
 chair.scale.set(2, 2, 2)
 scene.add(chair);
-
-//create whiteboard
-const board = createWhiteboard({
-  camera,
-  domElement: renderer.domElement,
-  // Optional: override default projects
-  projects: [
-    { title: 'iOS Fitness App', desc: 'Real-time form feedback with MediaPipe + Swift.', link: 'https://github.com/nkwno' },
-    { title: 'FastAPI Backend', desc: 'Video processing pipeline on GCP.', link: 'https://github.com/nkwno' },
-    { title: 'Health Trends', desc: 'CVD search trends with county-level models.', link: 'https://github.com/nkwno' },
-    { title: 'Robot Seeker', desc: 'Arduino bot finds nearest object.', link: 'https://github.com/nkwno' },
-  ]
-});
-board.position.set(2.0, 1.1, -5.0);
-scene.add(board);
 
 // rug
 const rug = createRug({
