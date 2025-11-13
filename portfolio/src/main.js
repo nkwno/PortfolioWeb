@@ -279,14 +279,11 @@ rightWall.position.set(5 + wallThickness / 2, 0, 0);
 scene.add(rightWall);
 
 // --- Now load and apply the plaster textures ---
-const wallUrl = (name) =>
-  new URL(`./texture/Plaster001_2K-JPG/${name}`, import.meta.url).href;
-
 const wallLoader = new THREE.TextureLoader();
 
-const plasterColor = wallLoader.load(wallUrl('Plaster001_2K-JPG_Color.jpg'));
-const plasterNormal = wallLoader.load(wallUrl('Plaster001_2K-JPG_NormalGL.jpg'));
-const plasterRough  = wallLoader.load(wallUrl('Plaster001_2K-JPG_Roughness.jpg'));
+const plasterColor = wallLoader.load('texture/Plaster001_2K-JPG/Plaster001_2K-JPG_Color.jpg');
+const plasterNormal = wallLoader.load('texture/Plaster001_2K-JPG/Plaster001_2K-JPG_NormalGL.jpg');
+const plasterRough  = wallLoader.load('texture/Plaster001_2K-JPG/Plaster001_2K-JPG_Roughness.jpg');
 
 [plasterColor, plasterNormal, plasterRough].forEach(t => {
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
@@ -313,14 +310,11 @@ const wallAniso = renderer.capabilities.getMaxAnisotropy?.() ?? 8;
 [plasterColor, plasterNormal, plasterRough].forEach(t => t.anisotropy = Math.min(8, wallAniso));
 
 //floor
-const floorUrl = (name) =>
-  new URL(`./texture/WoodFloor043_2K-JPG/${name}`, import.meta.url).href;
-
 const texLoader = new THREE.TextureLoader();
 
-const woodColor = texLoader.load(floorUrl('WoodFloor043_2K-JPG_Color.jpg'));
-const woodNormal = texLoader.load(floorUrl('WoodFloor043_2K-JPG_NormalGL.jpg'));
-const woodRough  = texLoader.load(floorUrl('WoodFloor043_2K-JPG_Roughness.jpg'));
+const woodColor = texLoader.load('texture/WoodFloor043_2K-JPG/WoodFloor043_2K-JPG_Color.jpg');
+const woodNormal = texLoader.load('texture/WoodFloor043_2K-JPG/WoodFloor043_2K-JPG_NormalGL.jpg');
+const woodRough  = texLoader.load('texture/WoodFloor043_2K-JPG/WoodFloor043_2K-JPG_Roughness.jpg');
 
 [woodColor, woodNormal, woodRough].forEach(t => {
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
@@ -445,7 +439,7 @@ hoop.rotation.y = Math.PI
 scene.add(hoop);
 
 const loader = new GLTFLoader();
-loader.load('/models/sofa.glb', (gltf) => {
+loader.load('models/sofa.glb', (gltf) => {
   const sofa = gltf.scene;
   sofa.scale.set(3, 3, 3);
   sofa.position.set(-2.5, -3, 2);
@@ -454,7 +448,7 @@ loader.load('/models/sofa.glb', (gltf) => {
 });
 
 const cameraLoader = new GLTFLoader();
-cameraLoader.load('/models/camera.glb', (gltf) => {
+cameraLoader.load('models/camera.glb', (gltf) => {
   const camera = gltf.scene;
   camera.scale.set(4, 4, 4);
   camera.position.set(4.0, -1.33, 2.0);
@@ -463,7 +457,7 @@ cameraLoader.load('/models/camera.glb', (gltf) => {
 });
 
 const shelfLoader = new GLTFLoader();
-shelfLoader.load('/models/shelf.glb', (gltf) => {
+shelfLoader.load('models/shelf.glb', (gltf) => {
   const shelf = gltf.scene;
   shelf.scale.set(4, 4, 4);
   shelf.position.set(4.0, -3, -3.0);
