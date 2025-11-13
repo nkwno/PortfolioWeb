@@ -1,4 +1,3 @@
-// src/components/chair.js
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
@@ -34,7 +33,6 @@ export function createChair(opts = {}) {
   const matMetal   = new THREE.MeshStandardMaterial({ color: colors.metal,   roughness: 0.35, metalness: 0.7  });
   const matAccent  = new THREE.MeshStandardMaterial({ color: colors.accent,  roughness: 0.6,  metalness: 0.2  });
 
-  // ---------- Base ----------
   const base = new THREE.Group();
   chair.add(base);
 
@@ -61,11 +59,10 @@ const forkH = 0.10; // a little longer so the wheel clearly hangs below the leg
 
 for (let i = 0; i < 5; i++) {
   const legGroup = new THREE.Group();
-  legGroup.position.y = hub.position.y;          // leg pivot at hub height
-  legGroup.rotation.y = (i * 2 * Math.PI) / 5;   // 72° steps
+  legGroup.position.y = hub.position.y;
+  legGroup.rotation.y = (i * 2 * Math.PI) / 5;
   base.add(legGroup);
 
-  // Leg tube: local +X is radial
   const leg = new THREE.Mesh(
     new THREE.CylinderGeometry(legR, legR, legLength, 16),
     matMetal
@@ -75,14 +72,12 @@ for (let i = 0; i < 5; i++) {
   leg.castShadow = leg.receiveShadow = true;
   legGroup.add(leg);
 
-  // --- NEW: fork is centered *below* the leg end ---
   const legEndX = innerOffset + legLength;
 const legEndY = legGroup.position.y;
 
-// Drop the fork lower so the wheel hangs beneath it
 const forkH = 0.10;
-const forkCenterY = legEndY - forkH * 0.6;  // slightly lower than before
-const wheelY = forkCenterY - forkH * 0.55;  // wheel fully below fork
+const forkCenterY = legEndY - forkH * 0.6;
+const wheelY = forkCenterY - forkH * 0.55;
 
 const fork = new THREE.Mesh(
   new THREE.CylinderGeometry(0.015, 0.02, forkH, 16),
@@ -92,7 +87,6 @@ fork.position.set(legEndX, forkCenterY, 0);
 fork.castShadow = fork.receiveShadow = true;
 legGroup.add(fork);
 
-// Wheel (upright plane)
 const wheel = new THREE.Mesh(
   new THREE.TorusGeometry(casterR, casterT * 0.5, 12, 24),
   matPlastic
@@ -110,7 +104,6 @@ cap.castShadow = cap.receiveShadow = true;
 legGroup.add(cap);
 }
 
-  // ---------- Swivel ----------
   const swivel = new THREE.Group();
   swivel.position.y = gasLiftH + 0.02;
   chair.add(swivel);
@@ -122,7 +115,6 @@ legGroup.add(cap);
   collar.castShadow = collar.receiveShadow = true;
   swivel.add(collar);
 
-  // ---------- Seat ----------
   const seat = new THREE.Mesh(
     new RoundedBoxGeometry(seatW, seatT, seatD, 3, 0.06),
     matFabric
@@ -140,7 +132,6 @@ legGroup.add(cap);
   seatEdge.visible = false;
   swivel.add(seatEdge);
 
-  // ---------- Backrest (no spine/brace) ----------
   const back = new THREE.Mesh(
     new RoundedBoxGeometry(seatW * 0.9, backH, backT, 3, 0.07),
     matFabric
@@ -150,13 +141,11 @@ legGroup.add(cap);
   back.castShadow = back.receiveShadow = true;
   swivel.add(back);
 
-  // (REMOVED the metal brace/spine entirely)
 
-  // ---------- Armrests ----------
     const armH = seat.position.y + 0.20;
     const armInsetX = 0.06;
     const armOffsetX = seatW * 0.5 - armInsetX;
-    const armBackwardZ = seatD * 0.05;  // moved back a little from before
+    const armBackwardZ = seatD * 0.05;
 
     const supportH = 0.18;
     const armSupportL = new THREE.Mesh(
@@ -169,7 +158,6 @@ legGroup.add(cap);
     const armSupportR = armSupportL.clone();
     armSupportR.position.x = armOffsetX;
 
-    // Pads: rotated forward-facing, but now slightly further back
     const armPadL = new THREE.Mesh(
     new RoundedBoxGeometry(armPadW, armPadT, armPadD, 3, 0.02),
     matPlastic
@@ -183,7 +171,6 @@ legGroup.add(cap);
 
     swivel.add(armSupportL, armSupportR, armPadL, armPadR);
 
-  // ---------- Auto-spin ----------
   let spinOn = true;
   let spinSpeed = initialSpinSpeed;
 
@@ -194,7 +181,6 @@ legGroup.add(cap);
   chair.userData.setSpin = (enabled) => (spinOn = !!enabled);
   chair.userData.setSpinSpeed = (radPerSec) => (spinSpeed = radPerSec);
 
-  // ---------- Shadows ----------
   chair.traverse((obj) => {
     if (obj.isMesh) obj.castShadow = obj.receiveShadow = true;
   });

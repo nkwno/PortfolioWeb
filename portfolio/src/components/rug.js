@@ -5,7 +5,6 @@ export function createRug(opts = {}) {
   const {
     size = { w: 1.6, d: 1.6 },
     thickness = 0.01,
-    // 👇 path is relative to site root (/PortfolioWeb/)
     texPath = 'texture/Carpet002_2K-JPG/',
     tile = { x: 1.5, y: 1.5 },
     rotation = 0,

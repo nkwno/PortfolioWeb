@@ -106,17 +106,14 @@ function injectNav() {
 
   const easeInOutQuad = (t) => (t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2)/2);
 
-  // Toggle user camera control (single place to manage)
   function setUserControl(enabled) {
     controls.enabled = enabled;
-    // optional: also hard-disable specific gestures if you want
     controls.enableRotate = enabled;
     controls.enablePan = enabled;
     controls.enableZoom = enabled;
     renderer.domElement.style.cursor = enabled ? '' : 'default';
   }
 
-  // Smooth camera tween; lock controls during tween; keep locked unless 'home'
   let tweenId = 0;
   function flyTo(key, { position, target, duration = 1.2 }) {
     tweenId++;
@@ -128,7 +125,7 @@ function injectNav() {
     const endTgt = clampVec3(target.clone());
 
     const start = performance.now();
-    setUserControl(false); // lock immediately
+    setUserControl(false);
 
     function step(now) {
       if (thisTween !== tweenId) return;
@@ -144,14 +141,12 @@ function injectNav() {
       if (t < 1) {
         requestAnimationFrame(step);
       } else {
-        // Only enable user control if we're on Home
         setUserControl(key === 'home');
       }
     }
     requestAnimationFrame(step);
   }
 
-  // Click handlers
   nav.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-goto]');
     if (!btn) return;
@@ -160,7 +155,6 @@ function injectNav() {
     if (anchor) flyTo(key, anchor);
   });
 
-  // Keyboard shortcuts (H=Home, 1–3 for sections)
   window.addEventListener('keydown', (e) => {
     if (['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
     if (e.key.toLowerCase() === 'h') flyTo('home', ANCHORS.home);
@@ -168,7 +162,6 @@ function injectNav() {
     if (e.key === '2') flyTo('projects', ANCHORS.projects);
   });
 
-  // On load: ensure Home starts with controls enabled
   setUserControl(true);
 }
 
@@ -182,7 +175,6 @@ controls.maxPolarAngle = Math.PI * 0.49;
 controls.enablePan = true;
 injectNav();
 
-// --- simple raycast interactivity
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 let hovered = null;
@@ -195,9 +187,21 @@ function onPointerMove(e) {
   raycaster.setFromCamera(mouse, camera);
   const hits = raycaster.intersectObjects(scene.children, true);
   const hit = hits.find(h => h.object.userData.openUrl);
+  const newHovered = hit?.object ?? null;
+
+  if (hovered && hovered.userData.hoverBorder) {
+    hovered.userData.hoverBorder.visible = false;
+  }
+
+  hovered = newHovered;
+
+  if (hovered && hovered.userData.hoverBorder) {
+    hovered.userData.hoverBorder.visible = true;
+  }
+
   renderer.domElement.style.cursor = hit ? 'pointer' : '';
-  hovered = hit?.object ?? null;
 }
+
 
 function onPointerDown() {
   if (hovered?.userData.openUrl) {
@@ -215,7 +219,6 @@ const ROOM = {
   minZ: -3.0, maxZ:  15.0,
   minY: -0.47091984852376617, maxY:  15.0
 };
-
 
 // keep target and camera inside the room
 function clampCameraToRoom() {
@@ -237,7 +240,6 @@ function clampCameraToRoom() {
   camera.updateProjectionMatrix();
 }
 
-// Run on every control change + each frame (belt-and-suspenders)
 controls.addEventListener('change', clampCameraToRoom);
 
 controls.enableDamping = true;
@@ -386,9 +388,8 @@ scene.add(rug);
 
 //linkedin frame
 const linkedin_frame = createLinkedInFrame({
-  url: 'https://www.linkedin.com/in/nao-kawano/',
-  outer: { w: 0.7, h: 0.7, d: 0.04 },
-  frameWidth: 0.06,
+  camera,
+  domElement: renderer.domElement,
 });
 
 // place it on the right wall

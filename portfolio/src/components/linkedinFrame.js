@@ -1,22 +1,6 @@
-// src/components/pictureFrame.js
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
-/**
- * createLinkedInFrame({
- *   outer = { w: 0.7, h: 0.7, d: 0.04 },   // overall frame size
- *   frameWidth = 0.06,                      // wood border thickness
- *   frameColor = 0x4a3b2e,                  // dark walnut-ish
- *   matColor = 0xffffff,                    // white matboard
- *   matInset = 0.06,                        // mat margin inside frame
- *   matDepth = 0.01,
- *   printInset = 0.16,                      // how far in from the frame edge the print sits
- *   logoBlue = 0x0a66c2,                    // LinkedIn blue
- *   url = 'https://www.linkedin.com/in/nao-kawano/'
- * })
- *
- * Returns a THREE.Group with userData.url set.
- */
 export function createLinkedInFrame(opts = {}) {
   const {
     outer = { w: 0.7, h: 0.7, d: 0.04 },
@@ -28,13 +12,14 @@ export function createLinkedInFrame(opts = {}) {
     printInset = 0.16,
     logoBlue = 0x0a66c2,
     url = 'www.linkedin.com/in/nao-kawano/',
+    camera = null,
+    domElement = null,
   } = opts;
 
   const g = new THREE.Group();
   g.name = 'LinkedInFrame';
   g.userData.url = url;
 
-  // --- Backing board (for rigidity)
   const back = new THREE.Mesh(
     new THREE.BoxGeometry(outer.w, outer.h, outer.d),
     new THREE.MeshStandardMaterial({ color: 0x2b2b2b, roughness: 0.9, metalness: 0 })
@@ -42,7 +27,6 @@ export function createLinkedInFrame(opts = {}) {
   back.castShadow = back.receiveShadow = true;
   g.add(back);
 
-  // --- Wood frame: 4 rails (front view)
   const railDepth = outer.d * 0.5;
   const railMat = new THREE.MeshStandardMaterial({ color: frameColor, roughness: 0.6, metalness: 0.05 });
 
@@ -57,17 +41,14 @@ export function createLinkedInFrame(opts = {}) {
     return m;
   };
 
-  // Top & bottom rails
   const top = mkRail(longW, longH); top.position.set(0,  (outer.h/2 - frameWidth/2), railDepth/2);
   const bot = mkRail(longW, longH); bot.position.set(0, -(outer.h/2 - frameWidth/2), railDepth/2);
 
-  // Left & right rails
   const left  = mkRail(shortW, shortH); left.position.set(-(outer.w/2 - frameWidth/2), 0, railDepth/2);
   const right = mkRail(shortW, shortH); right.position.set( (outer.w/2 - frameWidth/2), 0, railDepth/2);
 
   g.add(top, bot, left, right);
 
-  // --- Mat board (slightly inset)
   const matW = outer.w - matInset * 2;
   const matH = outer.h - matInset * 2;
   const mat = new THREE.Mesh(
@@ -78,18 +59,15 @@ export function createLinkedInFrame(opts = {}) {
   mat.castShadow = mat.receiveShadow = true;
   g.add(mat);
 
-  // --- “Print” area for the LinkedIn logo
   const printW = outer.w - printInset * 2;
   const printH = outer.h - printInset * 2;
   const printD = 0.002;
 
-  // Create logo texture via canvas (rounded blue square + “in”)
   const size = 1024;
   const cnv = document.createElement('canvas');
   cnv.width = cnv.height = size;
   const ctx = cnv.getContext('2d');
 
-  // background = transparent (shows mat around it)
   ctx.clearRect(0,0,size,size);
 
   // rounded blue square
@@ -100,14 +78,11 @@ export function createLinkedInFrame(opts = {}) {
   roundRect(ctx, bx, by, bw, bh, r);
   ctx.fill();
 
-  // "in" letters
   ctx.fillStyle = '#ffffff';
   ctx.font = `${Math.floor(size*0.56)}px Arial Black, Helvetica, Arial, sans-serif`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  // draw “in” roughly centered
   const text = 'in';
-  // crude centering tweak:
   const metrics = ctx.measureText(text);
   const tx = bx + bw*0.33 - metrics.actualBoundingBoxLeft;
   const ty = by + bh*0.72;
@@ -121,11 +96,10 @@ export function createLinkedInFrame(opts = {}) {
     new THREE.PlaneGeometry(printW, printH),
     new THREE.MeshStandardMaterial({ map: logoTex, roughness: 0.9, metalness: 0, side: THREE.FrontSide })
   );
-  print.position.z = mat.position.z + matDepth/2 + 0.001; // a hair above the mat
+  print.position.z = mat.position.z + matDepth/2 + 0.001;
   print.castShadow = print.receiveShadow = false;
   g.add(print);
 
-  // --- Subtle front acrylic (optional glow edge look)
   const glass = new THREE.Mesh(
     new THREE.PlaneGeometry(matW, matH),
     new THREE.MeshPhysicalMaterial({
@@ -134,14 +108,28 @@ export function createLinkedInFrame(opts = {}) {
       opacity: 0.06,
       roughness: 0.1,
       metalness: 0,
-      transmission: 0.0, // leave 0 to avoid refractive cost
+      transmission: 0.0,
       thickness: 0.01
     })
   );
   glass.position.z = print.position.z + 0.002;
   g.add(glass);
 
-  // utility: draw rounded rect on canvas
+const borderGeom = new THREE.EdgesGeometry(new THREE.PlaneGeometry(printW, printH));
+const borderMat  = new THREE.LineBasicMaterial({ color: 0xffffff });
+const hoverBorder = new THREE.LineSegments(borderGeom, borderMat);
+
+hoverBorder.position.set(print.position.x, print.position.y, glass.position.z + 0.002);
+hoverBorder.visible = false;
+hoverBorder.renderOrder = 20;
+g.add(hoverBorder);
+
+print.userData.openUrl = url;
+glass.userData.openUrl = url;
+print.userData.hoverBorder = hoverBorder;
+glass.userData.hoverBorder = hoverBorder;
+
+
   function roundRect(ctx, x, y, w, h, r) {
     const rr = Math.min(r, w/2, h/2);
     ctx.beginPath();
@@ -153,9 +141,49 @@ export function createLinkedInFrame(opts = {}) {
     ctx.closePath();
   }
 
-  // Make the *front* plane the thing we click
   print.userData.openUrl = url;
-  glass.userData.openUrl = url; // either works
+  glass.userData.openUrl = url;
+
+  g.userData.hoverBorder = hoverBorder;
+
+  if (camera && domElement) {
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const interactive = [print, glass];
+    let hovered = false;
+
+    function onPointerMove(e) {
+      const rect = domElement.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(interactive, false);
+      const now = hits.length > 0;
+
+      if (now !== hovered) {
+        hovered = now;
+        hoverBorder.visible = hovered;
+        domElement.style.cursor = hovered ? 'pointer' : 'default';
+      }
+    }
+
+    function onClick() {
+      if (!hovered) return;
+      if (url) {
+        window.open(url, '_blank', 'noopener');
+      }
+    }
+
+    domElement.addEventListener('mousemove', onPointerMove);
+    domElement.addEventListener('click', onClick);
+
+    g.userData.disposeInteractions = () => {
+      domElement.removeEventListener('mousemove', onPointerMove);
+      domElement.removeEventListener('click', onClick);
+      domElement.style.cursor = 'default';
+    };
+  }
 
   return g;
 }
