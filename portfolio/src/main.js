@@ -416,7 +416,7 @@ const linkedin_frame = createLinkedInFrame({
 
 // place it on the right wall
 linkedin_frame.scale.set(1.5, 1.5, 1.5)
-linkedin_frame.position.set(5, 0.9, 0);
+linkedin_frame.position.set(5, 0.9, 2.6);
 linkedin_frame.rotation.y = Math.PI * 1.5;
 scene.add(linkedin_frame);
 
@@ -426,6 +426,12 @@ const github_frame = createGitHubFrame({
   outer: { w: 0.7, h: 0.7, d: 0.04 },
   frameWidth: 0.06,
 });
+
+// place it on the right wall
+github_frame.scale.set(1.5, 1.5, 1.5)
+github_frame.position.set(5, 0.9, 4);
+github_frame.rotation.y = Math.PI * 1.5;
+scene.add(github_frame);
 
 //hoop
 const hoop = createBasketballHoop({
@@ -464,11 +470,7 @@ shelfLoader.load('models/shelf.glb', (gltf) => {
   shelf.rotation.y = Math.PI * 1.5
   scene.add(shelf);
 });
-// place it on the right wall
-github_frame.scale.set(1.5, 1.5, 1.5)
-github_frame.position.set(5, 0.9, 4);
-github_frame.rotation.y = Math.PI * 1.5;
-scene.add(github_frame);
+
 
 //shadows
 renderer.shadowMap.enabled = true;
