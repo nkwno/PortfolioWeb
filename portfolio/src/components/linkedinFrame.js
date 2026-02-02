@@ -149,7 +149,8 @@ glass.userData.hoverBorder = hoverBorder;
   if (camera && domElement) {
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
-    const interactive = [print, glass];
+    const interactive = [g]; // the whole frame group
+    g.userData.openUrl = url;
     let hovered = false;
 
     function onPointerMove(e) {
@@ -170,8 +171,8 @@ glass.userData.hoverBorder = hoverBorder;
 
     function onClick() {
       if (!hovered) return;
-      if (url) {
-        window.open(url, '_blank', 'noopener');
+      if (hovered.userData?.openUrl) {
+        window.open(hovered.userData.openUrl, '_blank', 'noopener');
       }
     }
 
