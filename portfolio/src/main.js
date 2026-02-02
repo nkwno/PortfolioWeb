@@ -390,6 +390,7 @@ scene.add(rug);
 const linkedin_frame = createLinkedInFrame({
   camera,
   domElement: renderer.domElement,
+  url: 'https://www.linkedin.com/in/nao-kawano/'
 });
 
 // place it on the right wall
@@ -400,7 +401,7 @@ scene.add(linkedin_frame);
 
 //github frame
 const github_frame = createGitHubFrame({
-  url: '',
+  url: 'https://github.com/nkwno',
   outer: { w: 0.7, h: 0.7, d: 0.04 },
   frameWidth: 0.06,
 });
