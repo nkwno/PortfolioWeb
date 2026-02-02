@@ -400,7 +400,7 @@ scene.add(linkedin_frame);
 
 //github frame
 const github_frame = createGitHubFrame({
-  url: 'https://github.com/nkwno',
+  url: '',
   outer: { w: 0.7, h: 0.7, d: 0.04 },
   frameWidth: 0.06,
 });
