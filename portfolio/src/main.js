@@ -388,9 +388,9 @@ scene.add(rug);
 
 //linkedin frame
 const linkedin_frame = createLinkedInFrame({
+  url: 'https://www.linkedin.com/in/nao-kawano/',
   camera,
-  domElement: renderer.domElement,
-  url: 'https://www.linkedin.com/in/nao-kawano/'
+  domElement: renderer.domElement
 });
 
 // place it on the right wall
